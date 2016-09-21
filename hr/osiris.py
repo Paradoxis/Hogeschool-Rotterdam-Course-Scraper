@@ -134,7 +134,7 @@ class OsirisScraper:
                 courses.append(course)
 
                 self.lock.acquire()
-                print("[+] Scraped course metadata: %s (%s)" % (course["korteNaamCursus"], course["cursuscode"]))
+                print("[+] Scraped course metadata: %s (%s)" % (course["korteNaamCursus"].encode("utf-8"), course["cursuscode"].encode("utf-8")))
                 self.lock.release()
 
     def get_course_info(self, course_row):
