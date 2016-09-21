@@ -162,7 +162,7 @@ class OsirisScraper:
         text = str(BeautifulSoup(response.content, "lxml").find("span", {"id": "curs"}))
 
         self.lock.acquire()
-        print("[+] Scraped course text: %s (%s)" % (course["korteNaamCursus"], course["cursuscode"]))
+        print("[+] Scraped course text: %s (%s)" % (course["korteNaamCursus"].encode("utf-8"), course["cursuscode"].encode("utf-8")))
         self.lock.release()
 
         return text
