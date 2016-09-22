@@ -1,6 +1,6 @@
 <div ng-app="KeuzeCursussen">
     <div class="page-header">
-        <h1>HR Keuzecursussen <small>Omdat OSIRIS onoverzichtelijk als de tering is</small></h1>
+        <h1>HR Keuzecursussen <small>Omdat OSIRIS onoverzichtelijk als de pest is</small></h1>
     </div>
 
     <div class="row">
