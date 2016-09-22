@@ -22,6 +22,8 @@ Since I had to figure out the entire login system for the school, I might as wel
 To use it, simply create a new instance of `hr.browser.HrBrowser` and use the login methods. The class is a subclass of `requests.Session` so it will have all the features you're used to in the [requests](http://docs.python-requests.org/en/master/) library. All `login` methods return true on a successful login.
 
 ```python
+# Import the HrBrowser class
+from hr.browser import HrBrowser
 
 # Instantiate a new browser object
 browser = HrBrowser(username="<your username>", password="<your password>")
