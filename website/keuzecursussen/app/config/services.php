@@ -60,6 +60,10 @@ $di->setShared('view', function () {
                 'compiledSeparator' => '_'
             ]);
 
+            $volt->getCompiler()->addFunction('ng', function($input) {
+                return '"{{".' . $input . '."}}"';
+            });
+
             return $volt;
         },
         '.phtml' => 'Phalcon\Mvc\View\Engine\Php'
