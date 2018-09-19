@@ -61,7 +61,6 @@
                     $scope.code = parts.code;
 
                     $http.get('courses/' + $scope.code + '.html').then(function(c) {
-                    debugger;
                         document.getElementById('course').innerHTML = c.data;
                     });
                 });
