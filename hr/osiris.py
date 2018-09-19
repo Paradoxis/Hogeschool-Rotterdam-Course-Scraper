@@ -147,7 +147,7 @@ class OsirisScraper:
         """
         course = re.findall(r'submitForm\(\'form0\',1,({.*})\);', course_row.find("td").find("a").attrs["onclick"]).pop()
         course = demjson.decode(course)
-        course["studiePunten"] = course_row.find_all("td")[6].string
+        course["studiePunten"] = [i for i in course_row.find_all("td") if i.text.strip().endswith(' SP')][0].text
         del course["event"]
         return course
 
