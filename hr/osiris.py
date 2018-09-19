@@ -1,5 +1,6 @@
 import re
 import time
+from multiprocessing.pool import ThreadPool
 
 import demjson
 from bs4 import BeautifulSoup
@@ -44,7 +45,7 @@ class OsirisScraper:
             return self.request_token
         else:
             response = self.browser.get("https://student.osiris.hro.nl:9021/osiris_student/Onderwijs.do")
-            content = BeautifulSoup(response.content, "lxml")
+            content = BeautifulSoup(response.text, "lxml")
             self.request_token = content.find("input", {"id": "requestToken"}).attrs["value"]
             return self.request_token
 
@@ -56,7 +57,7 @@ class OsirisScraper:
         :return: int
         """
         response = self.get_courses_length_request(year)
-        return int(re.findall(r'De volgende ([0-9]+) cursussen voldoen aan de opgegeven criteria.', response.content).pop())
+        return int(re.findall(r'De volgende ([0-9]+) cursussen voldoen aan de opgegeven criteria.', response.text).pop())
 
     def get_courses_length_request(self, year):
         """
@@ -100,12 +101,13 @@ class OsirisScraper:
         amount = self.get_courses_length(year=year)
         courses = []
 
-        for i in range(0, amount, 30):
-            t = Thread(target=self.get_course_list, args=(i, courses))
-            t.start()
+        pool = ThreadPool()
 
-        while len(courses) < amount:
-            time.sleep(0.25)
+        for i in range(0, amount, 30):
+            pool.apply_async(self.get_course_list, args=(i, courses))
+
+        pool.close()
+        pool.join()
 
         return courses
 
@@ -128,13 +130,13 @@ class OsirisScraper:
             "requestToken": self.get_request_token()
         })
 
-        for index, row in enumerate(BeautifulSoup(response.content, "lxml").find("table", {"class": "OraTableContent"}).find_all("tr")):
+        for index, row in enumerate(BeautifulSoup(response.text, "lxml").find("table", {"class": "OraTableContent"}).find_all("tr")):
             if not index == 0:
                 course = self.get_course_info(course_row=row)
                 courses.append(course)
 
                 self.lock.acquire()
-                print("[+] Scraped course metadata: %s (%s)" % (course["korteNaamCursus"].encode("utf-8"), course["cursuscode"].encode("utf-8")))
+                print("[+] Scraped course metadata: %s (%s)" % (course["korteNaamCursus"], course["cursuscode"]))
                 self.lock.release()
 
     def get_course_info(self, course_row):
@@ -159,10 +161,10 @@ class OsirisScraper:
         :return: string
         """
         response = self.get_course_text_request(course=course, year=year)
-        text = str(BeautifulSoup(response.content, "lxml").find("span", {"id": "curs"}))
+        text = str(BeautifulSoup(response.text, "lxml").find("span", {"id": "curs"}))
 
         self.lock.acquire()
-        print("[+] Scraped course text: %s (%s)" % (course["korteNaamCursus"].encode("utf-8"), course["cursuscode"].encode("utf-8")))
+        print("[+] Scraped course text: %s (%s)" % (course["korteNaamCursus"], course["cursuscode"]))
         self.lock.release()
 
         return text

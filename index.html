@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Hogeschool Rotterdam Keuzecursussen</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+        <style>
+            h1 {
+                line-height: 20px;
+            }
+            h1 small {
+                font-size: 15px;
+            }
+            table img {
+                opacity: 0;
+            }
+        </style>
+    </head>
+    <body>
+
+        <noscript><iframe src="//www.googletagmanager.com/ns.html?id=GTM-TQRD3N"
+        height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+        <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        '//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+        })(window,document,'script','dataLayer','GTM-TQRD3N');</script>
+
+        <div class="container">
+            <div ng-app="KeuzeCursussen">
+                <div class="page-header">
+                    <h1>HR Keuzecursussen <small>Omdat OSIRIS onoverzichtelijk als de pest is</small></h1>
+                </div>
+
+                <div class="row">
+                    <div class="col-xs-12">
+                        <div class="form-group">
+                            <input type="text" class="form-control" placeholder="Zoek op naam.." ng-model="search">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row" ng-controller="Finder">
+                    <div class="col-xs-12">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>
+                                            <a href="#" ng-click="sortType = 'korteNaamCursus'; sortReverse = !sortReverse">
+                                                Naam
+                                                <span ng-show="sortType == 'korteNaamCursus' && !sortReverse" class="fa fa-caret-down"></span>
+                                                <span ng-show="sortType == 'korteNaamCursus' && sortReverse" class="fa fa-caret-up"></span>
+                                            </a>
+                                        </th>
+                                        <th>
+                                            <a href="#" ng-click="sortType = 'cursuscode'; sortReverse = !sortReverse">
+                                                Code
+                                                <span ng-show="sortType == 'cursuscode' && !sortReverse" class="fa fa-caret-down"></span>
+                                                <span ng-show="sortType == 'cursuscode' && sortReverse" class="fa fa-caret-up"></span>
+                                            </a>
+                                        </th>
+                                        <th>
+                                            <a href="#" ng-click="sortType = 'aanvangsblok'; sortReverse = !sortReverse">
+                                                Aanvangsblok
+                                                <span ng-show="sortType == 'aanvangsblok' && !sortReverse" class="fa fa-caret-down"></span>
+                                                <span ng-show="sortType == 'aanvangsblok' && sortReverse" class="fa fa-caret-up"></span>
+                                            </a>
+                                        </th>
+                                        <th>
+                                            <a href="#" ng-click="sortType = 'studiePunten'; sortReverse = !sortReverse">
+                                                Studiepunten
+                                                <span ng-show="sortType == 'studiePunten' && !sortReverse" class="fa fa-caret-down"></span>
+                                                <span ng-show="sortType == 'studiePunten' && sortReverse" class="fa fa-caret-up"></span>
+                                            </a>
+                                        </th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    <tr ng-repeat="row in courses | filter:search | orderBy:sortType:sortReverse" data-filter-list="search">
+                                        <td>
+                                            <a href="courses.html?code={{ encodeURIComponent(row.cursuscode) }}&title={{ encodeURIComponent(row.korteNaamCursus) }}">{{ row.korteNaamCursus }}</a>
+                                        </td>
+                                        <td>{{ row.cursuscode }}</td>
+                                        <td>{{ row.aanvangsblok }}</td>
+                                        <td>{{ row.studiePunten }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.min.js"></script>
+            <script>
+                angular.module("KeuzeCursussen", []).controller("Finder", function ($scope, $http) {
+
+                    $scope.courses = []
+                    $scope.sortType = 'korteNaamCursus';
+                    $scope.sortReverse = false;
+
+                    $scope.encodeURIComponent = encodeURIComponent;
+
+                    $http.get('courses.json').then(function(c) {
+                        $scope.courses = c.data;
+                    });
+                });
+            </script>
+
+
+            <hr>
+
+            <footer style="margin-bottom: 50px">
+                Copyright &copy; 2016 - <a href="https://www.paradoxis.nl/">Luke Paris (Paradoxis)</a><br />
+                Website contents are property of the Hogeschool Rotterdam.
+            </footer>
+        </div>
+
+        <a href="https://github.com/Paradoxis/Hogeschool-Rotterdam-Course-Scraper"><img style="position: absolute; top: 0; right: 0; border: 0;"
+src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"></a>
+    </body>
+</html>

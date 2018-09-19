@@ -1,3 +1,5 @@
+import os
+
 from requests import Session
 from bs4 import BeautifulSoup
 
@@ -45,7 +47,7 @@ class HrBrowser(Session):
         :return: string|None
         """
         response = (login_page if login_page else self.get_login_page())
-        csrf_field = BeautifulSoup(response.content, "lxml").find("input", {"name": "lt"})
+        csrf_field = BeautifulSoup(response.text, "lxml").find("input", {"name": "lt"})
         return csrf_field.attrs["value"] if csrf_field else None
 
     def login_successful(self, login_page):
@@ -53,7 +55,7 @@ class HrBrowser(Session):
         Check if the current session is logged in or not
         :return: bool
         """
-        return "logged in as" in (login_page if login_page else self.get_login_page()).content
+        return "logged in as" in (login_page if login_page else self.get_login_page()).text
 
     def login(self, params=None):
         """
@@ -80,7 +82,7 @@ class HrBrowser(Session):
         :type params: dict
         :return: requests.Response
         """
-        return self.post("https://login.hro.nl/v1/login", {
+        return self.post("https://login.hr.nl/v1/login", {
             "credentialsType": "ldap",
             "_eventId": "submit",
             "username": self.username,
@@ -122,15 +124,44 @@ class HrBrowser(Session):
         Log into the OSIRIS service
         :return: bool
         """
-        self.login_post_request(params={"service_url": self.login_platforms["osiris"], "rcl": 65})
+        resp = self.login_post_request(params={"service_url": self.login_platforms["osiris"], "rcl": 65})
+        assert self.login_successful(resp)
+
+        self.merge_cookies('student.osiris.hro.nl')
+
+        resp = self.get('https://student.osiris.hro.nl:9021/osiris_student/LoginDirect.do')
+        accept = self.submit_found_form(resp)
+        sso = self.submit_found_form(accept)
         return self.login_osiris_successful()
+
+    def merge_cookies(self, domain):
+        for cookie, value in self.cookies.items():
+            self.cookies.set(cookie, value, domain=domain)
+
+    def submit_found_form(self, resp):
+        soup = BeautifulSoup(resp.text, 'lxml')
+        form = soup.find('form')
+        meth = form.attrs.get('method', 'GET').upper()
+        path = form.attrs.get('action', '')
+
+        if not path.startswith('http'):
+            path = os.path.join(os.path.dirname(resp.url), path)
+
+        data = dict((i.attrs.get('name'), i.attrs.get('value', '')) for i in form.select('input'))
+
+        if meth == 'GET':
+            kwargs = {'params': data}
+        else:
+            kwargs = {'data': data}
+
+        return self.request(method=meth, url=path, **kwargs)
 
     def login_osiris_successful(self):
         """
         Check if the OSIRIS login was successful
         :return: bool
         """
-        return self.username in self.get("https://student.osiris.hro.nl:9021/osiris_student/ToonPersonalia.do").content
+        return self.username in self.get("https://student.osiris.hro.nl:9021/osiris_student/ToonPersonalia.do").text
 
     def login_natschool(self):
         """
@@ -145,7 +176,7 @@ class HrBrowser(Session):
         Check if the HINT login was successful
         :return: bool
         """
-        return self.username in self.get("http://natschool.hro.nl/Pages/DashBoard/DashBoard.aspx?isactive=false").content
+        return self.username in self.get("http://natschool.hro.nl/Pages/DashBoard/DashBoard.aspx?isactive=false").text
 
     def login_myfiles(self):
         """
@@ -160,7 +191,7 @@ class HrBrowser(Session):
         Check if the HINT login was successful
         :return: bool
         """
-        return self.username in self.get("https://myfiles.hro.nl/index.php").content
+        return self.username in self.get("https://myfiles.hro.nl/index.php").text
 
     def login_hint(self):
         """
@@ -175,7 +206,7 @@ class HrBrowser(Session):
         Check if the HINT login was successful
         :return: bool
         """
-        return self.username in self.get("http://hint.hro.nl/nl/Home/").content
+        return self.username in self.get("http://hint.hro.nl/nl/Home/").text
 
 
 class HrBrowserException(Exception):

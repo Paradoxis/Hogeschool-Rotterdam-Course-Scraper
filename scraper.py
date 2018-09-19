@@ -1,6 +1,7 @@
 import os
 import json
 import datetime
+from multiprocessing.pool import ThreadPool
 from threading import Thread
 
 from hr.osiris import OsirisScraper, OsirisScraperException
@@ -77,13 +78,17 @@ def scrape(username, password, year):
         print("[*] Course text will be stored in: courses/{course code}.html")
         print("-------------------------------------------------------------")
 
+        pool = ThreadPool()
+
         for course in courses:
-            t = Thread(target=scrape_course_text, args=(course, year, scraper))
-            t.start()
+            pool.apply_async(scrape_course_text, args=(course, year, scraper))
+
+        pool.close()
+        pool.join()
 
     except OsirisScraperException or KeyboardInterrupt as e:
         print("-------------------------------------------------------------")
-        print("\b\b[!] Error: %s" % e.message)
+        print("\b\b[!] Error: %s" % e)
 
 
 def main():
